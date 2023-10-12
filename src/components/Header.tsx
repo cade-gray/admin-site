@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { LoginProps } from "../interfaces/LoginPropsInterface";
 import { useState, useRef, useEffect } from "react";
-import { logoutPost } from "../lib/logoutPost.js";
+import { logoutPost } from "../lib/logoutPost.ts";
 const Header: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);

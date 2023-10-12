@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginProps } from "../interfaces/LoginPropsInterface";
-import { downloadCsv } from "../lib/downloadCsv.js";
-import { jsonToCsv } from "../lib/jsonToCsv.js";
-import { logoutPost } from "../lib/logoutPost.js";
+import { downloadCsv } from "../lib/downloadCsv.ts";
+import { jsonToCsv } from "../lib/jsonToCsv.ts";
+import { logoutPost } from "../lib/logoutPost.ts";
 const Guests: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
   const navigate = useNavigate();
   const [guests, setGuests] = useState([]);
