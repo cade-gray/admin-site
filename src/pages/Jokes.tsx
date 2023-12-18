@@ -52,7 +52,7 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn }) => {
         </button>
         <label className="text-md text-neutral-700">Setup</label>
         <textarea
-          className="bg-neutral-700 text-neutral-200 p-2 rounded-md h-32 w-64"
+          className="bg-neutral-700 text-neutral-200 p-2 rounded-md h-64 w-64"
           placeholder="Setup"
           onChange={handleSetupChange}
           value={setup}
@@ -60,7 +60,7 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn }) => {
         ></textarea>
         <label className="text-md text-neutral-700">Punchline</label>
         <textarea
-          className="bg-neutral-700 text-neutral-200 p-2 rounded-md w-64"
+          className="bg-neutral-700 text-neutral-200 p-2 rounded-md h-64 w-64"
           placeholder="Punchline"
           maxLength={40}
           onChange={handlePunchlineChange}
