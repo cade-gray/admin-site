@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Guests from "./pages/Guests";
 import Header from "./components/Header";
+import Jokes from "./pages/Jokes";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -52,6 +53,17 @@ function App() {
             path="/guests"
             element={
               <Guests
+                loggedIn={loggedIn}
+                setLoggedIn={setLoggedIn}
+                username={username}
+                setUsername={setUsername}
+              />
+            }
+          ></Route>
+          <Route
+            path="/jokes"
+            element={
+              <Jokes
                 loggedIn={loggedIn}
                 setLoggedIn={setLoggedIn}
                 username={username}

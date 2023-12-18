@@ -75,6 +75,11 @@ const Header: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
                 Wedding Guests
               </li>
             </Link>
+            <Link to="/jokes" onClick={closeDropdown}>
+              <li className="text-lg md:text-xl p-3 hover:bg-green-700 border-b border-slate-700">
+                Jokes
+              </li>
+            </Link>
             <li className="text-lg md:text-xl p-3 hover:bg-green-700 hover:rounded-b-xl">
               <button
                 onClick={() => {
