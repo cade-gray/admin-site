@@ -76,7 +76,7 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn }) => {
             };
             const tokenString = sessionStorage.getItem("cg-admin-token");
             const { user, token } = JSON.parse(tokenString);
-            const response = await fetch("http://localhost:3030/joke", {
+            const response = await fetch("https://api.cadegray.dev/joke", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
