@@ -30,7 +30,7 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
     // Fetch users from API
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:3030/joke/all", {
+        const response = await fetch("https://api.cadegray.dev/joke/all", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -80,7 +80,7 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
               password:
                 "pw4extrasecurityincasetokeniscompromisednotmuchsecurebutbetterthannothing",
             };
-            const response = await fetch("http://localhost:3030/pulljoke", {
+            const response = await fetch("https://api.cadegray.dev/pulljoke", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
