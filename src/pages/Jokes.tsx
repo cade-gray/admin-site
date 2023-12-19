@@ -22,12 +22,9 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
   const handlePunchlineChange = (event) => {
     setPunchline(event.target.value);
   };
-  useEffect(() => {
-    if (!loggedIn) {
-      navigate("/");
-    }
-  }, [loggedIn, navigate]);
-  useEffect(() => {
+
+  // Possibly move this to a lib folder
+  const fetchJokes = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
     const { user, token } = JSON.parse(tokenString);
     // Fetch users from API
@@ -60,7 +57,15 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
       }
     };
     fetchData();
-  }, [setLoggedIn]);
+  };
+  useEffect(() => {
+    if (!loggedIn) {
+      navigate("/");
+    }
+  }, [loggedIn, navigate]);
+  useEffect(() => {
+    fetchJokes();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="text-neutral-200">
       <h1 className="text-3xl font-mono m-3">Jokedle Administration</h1>
@@ -107,7 +112,7 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
         <textarea
           className="bg-neutral-700 text-neutral-200 p-2 rounded-md h-64 w-64"
           placeholder="Punchline"
-          maxLength={40}
+          maxLength={50}
           onChange={handlePunchlineChange}
           value={punchline}
         ></textarea>
@@ -133,7 +138,7 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
 
             const data = await response.json();
             if (data.success) {
-              alert("Joke submitted successfully!");
+              fetchJokes();
             } else {
               alert("Error submitting joke: " + data.error);
             }
