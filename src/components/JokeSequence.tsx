@@ -7,14 +7,17 @@ const JokeSequence: React.FC<LoginProps> = () => {
   const updateSequence = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
     const { user, token } = JSON.parse(tokenString);
-    const response = await fetch("http://localhost:3030/joke/updatesequence", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ user, sequenceNbr: sequence }),
-    });
+    const response = await fetch(
+      "https://api.cadegray.dev/joke/updatesequence",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ user, sequenceNbr: sequence }),
+      }
+    );
     if (response.ok) {
       alert("Sequence updated");
     } else {
@@ -24,7 +27,7 @@ const JokeSequence: React.FC<LoginProps> = () => {
   const getSequence = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
     const { user, token } = JSON.parse(tokenString);
-    const response = await fetch("http://localhost:3030/joke/getsequence", {
+    const response = await fetch("https://api.cadegray.dev/joke/getsequence", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
