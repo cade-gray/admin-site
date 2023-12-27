@@ -10,7 +10,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginProps } from "../interfaces/LoginPropsInterface";
 import { logoutPost } from "../lib/logoutPost.ts";
-const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
+import JokeSequence from "../components/JokeSequence.tsx";
+const Jokes: React.FC<LoginProps> = ({
+  loggedIn,
+  setLoggedIn,
+  username,
+  setUsername,
+}) => {
   const navigate = useNavigate();
   //const [history, setHistory] = useState([]);
   const [setup, setSetup] = useState("");
@@ -147,6 +153,12 @@ const Jokes: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
           Submit Joke to Database
         </button>
       </div>
+      <JokeSequence
+        loggedIn={loggedIn}
+        setLoggedIn={setLoggedIn}
+        username={username}
+        setUsername={setUsername}
+      />
       <div className="flex justify-center">
         <table className="text-center max-w-xl">
           <thead className="bg-neutral-100 text-slate-700 text-sm">
