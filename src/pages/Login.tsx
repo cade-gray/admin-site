@@ -36,13 +36,13 @@ const Login: React.FC<LoginProps> = ({
         setLoggedIn(true);
       } else {
         // Login failed
-        console.error("Login failed:", responseData.error);
+        alert("Login failed: " + responseData.error);
         // Handle login failure
       }
       // You can perform further actions based on the API response
     } catch (error) {
       // Handle errors
-      console.error("Error:", error);
+      alert("Error logging in: " + error);
     }
   };
   useEffect(() => {

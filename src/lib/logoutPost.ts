@@ -11,6 +11,6 @@ export async function logoutPost() {
       body: JSON.stringify({ user }),
     });
   } catch (error) {
-    console.log(error);
+    alert("error logging out: " + error);
   }
 }

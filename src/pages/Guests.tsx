@@ -44,7 +44,7 @@ const Guests: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
           setGuests(data);
         }
       } catch (error) {
-        console.log(error);
+        alert("error fetching guests: " + error);
       }
     };
     fetchData();

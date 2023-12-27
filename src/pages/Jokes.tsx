@@ -55,11 +55,10 @@ const Jokes: React.FC<LoginProps> = ({
           return;
         } else {
           const data = await response.json();
-          console.log(data);
           setJokes(data);
         }
       } catch (error) {
-        console.log(error);
+        alert("Error pulling all jokes: " + error);
       }
     };
     fetchData();

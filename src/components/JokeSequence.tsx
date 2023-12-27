@@ -7,7 +7,6 @@ const JokeSequence: React.FC<LoginProps> = () => {
   const updateSequence = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
     const { user, token } = JSON.parse(tokenString);
-    console.log("Update sequence");
     const response = await fetch("http://localhost:3030/joke/updatesequence", {
       method: "POST",
       headers: {
@@ -16,12 +15,15 @@ const JokeSequence: React.FC<LoginProps> = () => {
       },
       body: JSON.stringify({ user, sequenceNbr: sequence }),
     });
-    console.log(response);
+    if (response.ok) {
+      alert("Sequence updated");
+    } else {
+      alert("Error updating sequence");
+    }
   };
   const getSequence = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
     const { user, token } = JSON.parse(tokenString);
-    console.log("Get sequence");
     const response = await fetch("http://localhost:3030/joke/getsequence", {
       method: "POST",
       headers: {
