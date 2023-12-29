@@ -21,12 +21,17 @@ const Jokes: React.FC<LoginProps> = ({
   //const [history, setHistory] = useState([]);
   const [setup, setSetup] = useState("");
   const [punchline, setPunchline] = useState("");
+  const [formattedPunchline, setFormattedPunchline] = useState("");
   const [jokes, setJokes] = useState([]);
   const handleSetupChange = (event) => {
     setSetup(event.target.value);
   };
   const handlePunchlineChange = (event) => {
     setPunchline(event.target.value);
+    setFormattedPunchline(event.target.value);
+  };
+  const handleFmtdPunchlineChange = (event) => {
+    setFormattedPunchline(event.target.value);
   };
 
   // Possibly move this to a lib folder
@@ -100,6 +105,7 @@ const Jokes: React.FC<LoginProps> = ({
             } else {
               setSetup(data.setup);
               setPunchline(data.punchline);
+              setFormattedPunchline(data.punchline);
             }
           }}
         >
@@ -121,6 +127,26 @@ const Jokes: React.FC<LoginProps> = ({
           onChange={handlePunchlineChange}
           value={punchline}
         ></textarea>
+        <label className="text-md text-neutral-700">Formatted Punchline</label>
+        <textarea
+          className="bg-neutral-700 text-neutral-200 p-2 rounded-md w-full"
+          placeholder="Formatted Punchline"
+          maxLength={75}
+          onChange={handleFmtdPunchlineChange}
+          value={formattedPunchline}
+        ></textarea>
+        <div className="grid grid-cols-12 grid-rows-6 bg-white text-black">
+          {Array.from(formattedPunchline, (char, index) => (
+            <div
+              key={index}
+              className={`m-1 p-1 flex items-center justify-center text-2xl font-semibold ${
+                char === " " || char === "\n" ? "bg-gray-400/20" : "bg-gray-300"
+              }`}
+            >
+              {char === " " ? "" : char}
+            </div>
+          ))}
+        </div>
         <button
           className="bg-green-500 p-2 rounded-md shadow-lg hover:scale-110 mt-2 w-64"
           onClick={async () => {
@@ -128,6 +154,7 @@ const Jokes: React.FC<LoginProps> = ({
             const joke = {
               setup: setup,
               punchline: punchline,
+              formattedPunchline: formattedPunchline,
             };
             const tokenString = sessionStorage.getItem("cg-admin-token");
             const { user, token } = JSON.parse(tokenString);
