@@ -19,6 +19,7 @@ const Jokes: React.FC<LoginProps> = ({
 }) => {
   const navigate = useNavigate();
   //const [history, setHistory] = useState([]);
+  const [jokeSubmissions, setJokeSubmissions] = useState([]);
   const [setup, setSetup] = useState("");
   const [punchline, setPunchline] = useState("");
   const [formattedPunchline, setFormattedPunchline] = useState("");
@@ -34,7 +35,7 @@ const Jokes: React.FC<LoginProps> = ({
     setFormattedPunchline(event.target.value);
   };
 
-  // Possibly move this to a lib folder
+  // Possibly move these functions to a lib folder
   const fetchJokes = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
     const { user, token } = JSON.parse(tokenString);
@@ -68,6 +69,44 @@ const Jokes: React.FC<LoginProps> = ({
     };
     fetchData();
   };
+
+  const fetchJokeSubmissions = async () => {
+    const tokenString = sessionStorage.getItem("cg-admin-token");
+    const { user, token } = JSON.parse(tokenString);
+    // Fetch users from API
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://api.cadegray.dev/joke/submission/all",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ user }),
+          }
+        );
+        // Prevent page from erroring from bad response
+        if (!response.ok) {
+          const responseCode = response.status;
+          if (responseCode === 401) {
+            logoutPost();
+            sessionStorage.removeItem("cg-admin-token"); // Remove token since it does not exist in database
+            setLoggedIn(false);
+          }
+          return;
+        } else {
+          const data = await response.json();
+          setJokeSubmissions(data);
+        }
+      } catch (error) {
+        alert("Error pulling joke submissions: " + error);
+      }
+    };
+    fetchData();
+    console.log(jokeSubmissions);
+  };
   useEffect(() => {
     if (!loggedIn) {
       navigate("/");
@@ -75,6 +114,7 @@ const Jokes: React.FC<LoginProps> = ({
   }, [loggedIn, navigate]);
   useEffect(() => {
     fetchJokes();
+    fetchJokeSubmissions();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="text-neutral-200">
@@ -83,9 +123,10 @@ const Jokes: React.FC<LoginProps> = ({
         <button
           className="bg-sky-500 p-2 rounded-md shadow-lg hover:scale-110 mt-2 w-64"
           onClick={async () => {
-            // TODO: Seperate this into a function and place in lib folder
+            // TODO: Seperate all of this into a function and place in lib folder
             const tokenString = sessionStorage.getItem("cg-admin-token");
             const { user, token } = JSON.parse(tokenString);
+            // This is dumb, I am already sending a token so why do I need a password?  What was I thinking?
             const password = {
               password:
                 "pw4extrasecurityincasetokeniscompromisednotmuchsecurebutbetterthannothing",
@@ -111,6 +152,40 @@ const Jokes: React.FC<LoginProps> = ({
         >
           Pull New Joke from Dad Jokes API
         </button>
+        <h2 className="text-2xl font-mono text-neutral-700">
+          Joke Submissions
+        </h2>
+        <table className="text-black text-center">
+          <thead className="bg-neutral-100 text-slate-700 text-sm">
+            <tr>
+              <th>Submission ID</th>
+              <th>Setup</th>
+              <th>Punchline</th>
+              <th>Source</th>
+              <th>Add</th>
+            </tr>
+          </thead>
+          {jokeSubmissions.map((submission) => (
+            <tr key={submission.submissionid}>
+              <td className="border px-1 py-1">{submission.submissionid}</td>
+              <td className="border px-1 py-1">{submission.setup}</td>
+              <td className="border px-1 py-1">{submission.punchline}</td>
+              <td className="border px-1 py-1">{submission.source}</td>
+              <td className="border px-1 py-1">
+                <button
+                  className="bg-green-500 p-2 rounded-md shadow-lg hover:scale-110 mt-2"
+                  onClick={() => {
+                    setSetup(submission.setup);
+                    setPunchline(submission.punchline);
+                    setFormattedPunchline(submission.punchline);
+                  }}
+                >
+                  Add
+                </button>
+              </td>
+            </tr>
+          ))}
+        </table>
         <label className="text-md text-neutral-700">Setup</label>
         <textarea
           className="bg-neutral-700 text-neutral-200 p-2 rounded-md h-64 w-64"
