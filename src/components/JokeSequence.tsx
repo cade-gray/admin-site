@@ -6,17 +6,22 @@ const JokeSequence: React.FC<LoginProps> = () => {
 
   const updateSequence = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
+    if (!tokenString) {
+      alert("Please log in again");
+      return;
+    }
     const { user, token } = JSON.parse(tokenString);
     const response = await fetch(
-      "https://api.cadegray.dev/joke/updatesequence",
+      "https://jokedle-api.cadegray.dev/joke/sequence",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "X-User": user,
         },
-        body: JSON.stringify({ user, sequenceNbr: sequence }),
-      }
+        body: JSON.stringify({ sequenceNbr: sequence }),
+      },
     );
     if (response.ok) {
       alert("Sequence updated");
@@ -26,17 +31,23 @@ const JokeSequence: React.FC<LoginProps> = () => {
   };
   const getSequence = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
+    if (!tokenString) {
+      alert("Please log in again");
+      return;
+    }
     const { user, token } = JSON.parse(tokenString);
-    const response = await fetch("https://api.cadegray.dev/joke/getsequence", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const response = await fetch(
+      "https://jokedle-api.cadegray.dev/joke/sequence",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-User": user,
+        },
       },
-      body: JSON.stringify({ user }),
-    });
+    );
     const data = await response.json();
-    setSequence(data[0].sequenceNbr);
+    setSequence(data?.sequenceNbr ?? data?.[0]?.sequenceNbr ?? 0);
   };
   useEffect(() => {
     getSequence();

@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import Guests from "./pages/Guests";
 import Header from "./components/Header";
 import Jokes from "./pages/Jokes";
 
@@ -42,17 +41,6 @@ function App() {
             path="/home"
             element={
               <Home
-                loggedIn={loggedIn}
-                setLoggedIn={setLoggedIn}
-                username={username}
-                setUsername={setUsername}
-              />
-            }
-          ></Route>
-          <Route
-            path="/guests"
-            element={
-              <Guests
                 loggedIn={loggedIn}
                 setLoggedIn={setLoggedIn}
                 username={username}
