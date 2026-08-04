@@ -2,7 +2,7 @@ export async function logoutPost() {
   const tokenString = sessionStorage.getItem("cg-admin-token");
   const { user, token } = JSON.parse(tokenString);
   try {
-    await fetch("https://api.cadegray.dev/logout", {
+    await fetch("https://admin-api.cadegray.dev/logout", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
