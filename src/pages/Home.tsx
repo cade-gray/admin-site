@@ -22,9 +22,13 @@ const Home: React.FC<LoginProps> = ({ loggedIn, setLoggedIn, username }) => {
 
   return (
     <>
-      <h1 className="text-3xl font-mono bg-slate-700 text-neutral-100">
-        Welcome {username}!
-      </h1>
+      <div className="max-w-5xl mx-auto">
+        <div className="m-5 p-6 bg-slate-800/60 border border-slate-700 rounded-xl shadow-lg">
+          <h1 className="text-3xl font-mono text-neutral-100">
+            Welcome {username}!
+          </h1>
+        </div>
+      </div>
     </>
   );
 };

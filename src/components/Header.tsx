@@ -38,7 +38,7 @@ const Header: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
   }
 
   return (
-    <ul className="flex items-center justify-between bg-sky-500 p-3 shadow-lg min-w-full font-mono">
+    <ul className="flex items-center justify-between bg-slate-800/80 border-b border-slate-700 text-neutral-100 p-3 shadow-lg min-w-full font-mono">
       <li>
         <h1 className="text-md md:text-xl">Administration</h1>
         <h2 className="text-md">CADEGRAY.DEV</h2>
@@ -64,9 +64,9 @@ const Header: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
           </svg>
         </button>
         {dropdownOpen && (
-          <ul className="absolute top-8 right-1 bg-green-500 border border-slate-700 w-48 text-center shadow-lg rounded-xl">
+          <ul className="absolute top-8 right-1 bg-slate-800 border border-slate-600 w-48 text-center shadow-xl rounded-xl overflow-hidden">
             <Link to="/home" onClick={closeDropdown}>
-              <li className="text-lg md:text-xl  p-3 hover:bg-green-700 hover:rounded-t-xl border-b border-slate-700">
+              <li className="text-lg md:text-xl p-3 hover:bg-slate-700 border-b border-slate-700 transition">
                 Home
               </li>
             </Link>
@@ -76,11 +76,11 @@ const Header: React.FC<LoginProps> = ({ loggedIn, setLoggedIn }) => {
               </li>
             </Link>
             <Link to="/jokes" onClick={closeDropdown}>
-              <li className="text-lg md:text-xl p-3 hover:bg-green-700 border-b border-slate-700">
+              <li className="text-lg md:text-xl p-3 hover:bg-slate-700 border-b border-slate-700 transition">
                 Jokes
               </li>
             </Link>
-            <li className="text-lg md:text-xl p-3 hover:bg-green-700 hover:rounded-b-xl">
+            <li className="text-lg md:text-xl p-3 hover:bg-slate-700 transition">
               <button
                 onClick={() => {
                   handleLogout();
