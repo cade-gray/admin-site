@@ -3,4 +3,4 @@ services:
     image: ghcr.io/cade-gray/admin-site:latest
     restart: unless-stopped
     ports:
-      - "3002:80"
+      - "3003:80"

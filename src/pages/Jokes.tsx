@@ -63,18 +63,24 @@ const Jokes: React.FC<LoginProps> = ({
   // Possibly move this to a lib folder
   const fetchJokes = async () => {
     const tokenString = sessionStorage.getItem("cg-admin-token");
+    if (!tokenString) {
+      setLoggedIn(false);
+      return;
+    }
     const { user, token } = JSON.parse(tokenString);
     // Fetch users from API
     const fetchData = async () => {
       try {
-        const response = await fetch("https://api.cadegray.dev/joke/all", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+        const response = await fetch(
+          "https://jokedle-api.cadegray.dev/joke/all",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "X-User": user,
+            },
           },
-          body: JSON.stringify({ user }),
-        });
+        );
         // Prevent page from erroring from bad response
         if (!response.ok) {
           const responseCode = response.status;
@@ -187,13 +193,18 @@ const Jokes: React.FC<LoginProps> = ({
               body: JSON.stringify({ user, password }),
             });
             const data = await response.json();
-            if (!data.success) {
-              alert("Error pulling joke: " + data.error);
-            } else {
-              setSetup(data.setup);
-              setPunchline(data.punchline);
-              setFormattedPunchline(data.punchline);
+            const pulledJoke = data?.joke ?? data;
+
+            if (!pulledJoke?.setup || !pulledJoke?.punchline) {
+              alert("Error pulling joke: unexpected API response");
+              return;
             }
+
+            setSetup(pulledJoke.setup);
+            setPunchline(pulledJoke.punchline);
+            setFormattedPunchline(
+              pulledJoke.formattedPunchline ?? pulledJoke.punchline,
+            );
           }}
         >
           Pull New Joke from Dad Jokes API
@@ -262,16 +273,23 @@ const Jokes: React.FC<LoginProps> = ({
               formattedPunchline: formattedPunchline,
             };
             const tokenString = sessionStorage.getItem("cg-admin-token");
+            if (!tokenString) {
+              setLoggedIn(false);
+              return;
+            }
             const { user, token } = JSON.parse(tokenString);
-            const response = await fetch("https://api.cadegray.dev/joke", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-
-                Authorization: `Bearer ${token}`,
+            const response = await fetch(
+              "https://jokedle-api.cadegray.dev/joke",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                  "X-User": user,
+                },
+                body: JSON.stringify({ joke }),
               },
-              body: JSON.stringify({ user, joke }),
-            });
+            );
 
             const data = await response.json();
             if (data.success) {
