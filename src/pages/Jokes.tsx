@@ -37,6 +37,19 @@ const emptyEdit = {
 const inputStyles =
   "bg-slate-900/70 border border-slate-600 rounded-lg p-2 text-neutral-200 placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition";
 
+const cardStyles =
+  "bg-slate-800/60 border border-slate-700 rounded-xl shadow-lg m-3 sm:m-5";
+
+// Below md the tables reflow into stacked cards: the header row is hidden and
+// each cell prints its own label from data-label, so nothing scrolls sideways
+const tableStyles = "w-full text-left text-sm";
+const theadStyles =
+  "hidden md:table-header-group bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider";
+const tbodyStyles = "block md:table-row-group divide-y divide-slate-700";
+const rowStyles = "block md:table-row py-2 md:py-0 transition";
+const cellStyles =
+  "block md:table-cell align-top px-4 py-1.5 md:py-3 before:block before:text-xs before:uppercase before:tracking-wider before:text-slate-500 before:content-[attr(data-label)] md:before:content-none";
+
 const Jokes: React.FC<LoginProps> = ({
   loggedIn,
   setLoggedIn,
@@ -288,12 +301,12 @@ const Jokes: React.FC<LoginProps> = ({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="text-neutral-200 max-w-5xl mx-auto pb-10">
-      <h1 className="text-3xl font-mono m-3 text-neutral-100">
+      <h1 className="text-2xl sm:text-3xl font-mono m-3 text-neutral-100">
         Jokedle Administration
       </h1>
-      <div className="m-5 bg-slate-800/60 border border-slate-700 rounded-xl shadow-lg overflow-hidden">
-        <div className="flex items-center justify-between px-5 pt-4 pb-2">
-          <h2 className="text-xl font-mono text-neutral-100">
+      <div className={`${cardStyles} overflow-hidden`}>
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-4 pb-2">
+          <h2 className="text-lg sm:text-xl font-mono text-neutral-100">
             Public Joke Submissions
           </h2>
           <button
@@ -305,15 +318,15 @@ const Jokes: React.FC<LoginProps> = ({
           </button>
         </div>
         {submissions.length === 0 ? (
-          <p className="px-5 pb-4 text-sm text-slate-400">
+          <p className="px-4 sm:px-5 pb-4 text-sm text-slate-400">
             {submissionsLoading
               ? "Loading submissions…"
               : "No submissions right now."}
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+            <table className={tableStyles}>
+              <thead className={theadStyles}>
                 <tr>
                   <th className="px-4 py-3">ID</th>
                   <th className="px-4 py-3">Setup</th>
@@ -323,40 +336,53 @@ const Jokes: React.FC<LoginProps> = ({
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700">
+              <tbody className={tbodyStyles}>
                 {submissions.map((submission) => (
                   <tr
                     key={submission.submissionId}
-                    className={`transition ${
+                    className={`${rowStyles} ${
                       loadedSubmissionId === submission.submissionId
                         ? "bg-slate-700/40"
                         : "hover:bg-slate-700/40"
                     }`}
                   >
-                    <td className="px-4 py-3 font-mono text-slate-400">
+                    <td
+                      data-label="ID"
+                      className={`${cellStyles} font-mono text-slate-400`}
+                    >
                       {submission.submissionId}
                     </td>
-                    <td className="px-4 py-3">{submission.setup}</td>
-                    <td className="px-4 py-3">{submission.punchline}</td>
-                    <td className="px-4 py-3 text-slate-400">
+                    <td data-label="Setup" className={cellStyles}>
+                      {submission.setup}
+                    </td>
+                    <td data-label="Punchline" className={cellStyles}>
+                      {submission.punchline}
+                    </td>
+                    <td
+                      data-label="Source"
+                      className={`${cellStyles} text-slate-400`}
+                    >
                       {submission.source}
                     </td>
-                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
+                    <td
+                      data-label="Submitted"
+                      className={`${cellStyles} text-slate-400 md:whitespace-nowrap`}
+                    >
                       {submission.createdAt
                         ? new Date(submission.createdAt).toLocaleDateString()
                         : ""}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2 justify-end">
+                    <td className={`${cellStyles} pt-2 md:pt-3`}>
+                      <div className="flex gap-2 md:justify-end">
                         <button
-                          className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
+                          className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
                           onClick={() => loadSubmission(submission)}
                           disabled={deletingId === submission.submissionId}
                         >
                           Load
                         </button>
                         <button
-                          className="bg-rose-500 hover:bg-rose-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
+                          className="bg-rose-500 hover:bg-rose-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
                           onClick={() => deleteSubmission(submission)}
                           disabled={deletingId === submission.submissionId}
                         >
@@ -373,9 +399,11 @@ const Jokes: React.FC<LoginProps> = ({
           </div>
         )}
       </div>
-      <div className="flex flex-col space-y-5 items-center bg-slate-800/60 border border-slate-700 m-5 p-6 rounded-xl shadow-lg">
+      <div
+        className={`${cardStyles} flex flex-col space-y-5 items-center p-4 sm:p-6`}
+      >
         <button
-          className="bg-sky-500 hover:bg-sky-400 text-white font-medium p-2 rounded-lg shadow-md transition w-64"
+          className="bg-sky-500 hover:bg-sky-400 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-64"
           onClick={async () => {
             // TODO: Seperate this into a function and place in lib folder
             const tokenString = sessionStorage.getItem("cg-admin-token");
@@ -472,7 +500,7 @@ const Jokes: React.FC<LoginProps> = ({
             {Array.from(previewText, (char, index) => (
               <div
                 key={index}
-                className={`m-0.5 aspect-square flex items-center justify-center text-xl font-semibold rounded ${
+                className={`m-px sm:m-0.5 aspect-square flex items-center justify-center text-[0.6rem] sm:text-base md:text-xl font-semibold rounded ${
                   char === " " || char === "\n"
                     ? "bg-slate-700/40"
                     : "bg-neutral-200 text-slate-900"
@@ -483,9 +511,9 @@ const Jokes: React.FC<LoginProps> = ({
             ))}
           </div>
         </div>
-        <div className="flex flex-wrap gap-3 justify-center">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center w-full">
           <button
-            className="bg-emerald-500 hover:bg-emerald-400 text-white font-medium p-2 rounded-lg shadow-md transition w-64"
+            className="bg-emerald-500 hover:bg-emerald-400 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-64"
             onClick={async () => {
               // TODO: Seperate this into a function and place in lib folder
               const joke = {
@@ -525,7 +553,7 @@ const Jokes: React.FC<LoginProps> = ({
             Submit Joke to Database
           </button>
           <button
-            className="bg-slate-600 hover:bg-slate-500 disabled:opacity-40 text-white font-medium p-2 rounded-lg shadow-md transition w-40"
+            className="bg-slate-600 hover:bg-slate-500 disabled:opacity-40 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-40"
             onClick={clearForm}
             disabled={!setup && !punchline && !formattedPunchline && !source}
           >
@@ -539,13 +567,13 @@ const Jokes: React.FC<LoginProps> = ({
         username={username}
         setUsername={setUsername}
       />
-      <div className="m-5 bg-slate-800/60 border border-slate-700 rounded-xl shadow-lg overflow-hidden">
-        <h2 className="text-xl font-mono text-neutral-100 px-5 pt-4 pb-2">
+      <div className={`${cardStyles} overflow-hidden`}>
+        <h2 className="text-lg sm:text-xl font-mono text-neutral-100 px-4 sm:px-5 pt-4 pb-2">
           Joke Database
         </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+          <table className={tableStyles}>
+            <thead className={theadStyles}>
               <tr>
                 <th className="px-4 py-3">ID</th>
                 <th className="px-4 py-3">Setup</th>
@@ -555,14 +583,20 @@ const Jokes: React.FC<LoginProps> = ({
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className={tbodyStyles}>
               {jokes.map((joke) =>
                 editingId === joke.jokeId ? (
-                  <tr key={joke.jokeId} className="bg-slate-700/40">
-                    <td className="px-4 py-3 font-mono text-slate-400">
+                  <tr
+                    key={joke.jokeId}
+                    className={`${rowStyles} bg-slate-700/40`}
+                  >
+                    <td
+                      data-label="ID"
+                      className={`${cellStyles} font-mono text-slate-400`}
+                    >
                       {joke.jokeId}
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Setup" className={cellStyles}>
                       <textarea
                         className={`${inputStyles} w-full text-sm`}
                         rows={3}
@@ -573,7 +607,7 @@ const Jokes: React.FC<LoginProps> = ({
                         }
                       ></textarea>
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Punchline" className={cellStyles}>
                       <textarea
                         className={`${inputStyles} w-full text-sm`}
                         rows={3}
@@ -587,7 +621,10 @@ const Jokes: React.FC<LoginProps> = ({
                         }
                       ></textarea>
                     </td>
-                    <td className="px-4 py-3">
+                    <td
+                      data-label="Formatted Punchline"
+                      className={cellStyles}
+                    >
                       <textarea
                         className={`${inputStyles} w-full text-sm`}
                         rows={3}
@@ -601,7 +638,7 @@ const Jokes: React.FC<LoginProps> = ({
                         }
                       ></textarea>
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Source" className={cellStyles}>
                       <input
                         type="text"
                         className={`${inputStyles} w-full text-sm`}
@@ -611,17 +648,17 @@ const Jokes: React.FC<LoginProps> = ({
                         }
                       />
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-2 items-end">
+                    <td className={`${cellStyles} pt-2 md:pt-3`}>
+                      <div className="flex gap-2 md:flex-col md:items-end">
                         <button
-                          className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
+                          className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
                           onClick={saveEdit}
                           disabled={saving}
                         >
                           {saving ? "Saving…" : "Save"}
                         </button>
                         <button
-                          className="bg-slate-600 hover:bg-slate-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
+                          className="bg-slate-600 hover:bg-slate-500 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
                           onClick={cancelEdit}
                           disabled={saving}
                         >
@@ -633,18 +670,32 @@ const Jokes: React.FC<LoginProps> = ({
                 ) : (
                   <tr
                     key={joke.jokeId}
-                    className="hover:bg-slate-700/40 transition"
+                    className={`${rowStyles} hover:bg-slate-700/40`}
                   >
-                    <td className="px-4 py-3 font-mono text-slate-400">
+                    <td
+                      data-label="ID"
+                      className={`${cellStyles} font-mono text-slate-400`}
+                    >
                       {joke.jokeId}
                     </td>
-                    <td className="px-4 py-3">{joke.setup}</td>
-                    <td className="px-4 py-3">{joke.punchline}</td>
-                    <td className="px-4 py-3">{joke.formattedPunchline}</td>
-                    <td className="px-4 py-3 text-slate-400">{joke.source}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td data-label="Setup" className={cellStyles}>
+                      {joke.setup}
+                    </td>
+                    <td data-label="Punchline" className={cellStyles}>
+                      {joke.punchline}
+                    </td>
+                    <td data-label="Formatted Punchline" className={cellStyles}>
+                      {joke.formattedPunchline}
+                    </td>
+                    <td
+                      data-label="Source"
+                      className={`${cellStyles} text-slate-400`}
+                    >
+                      {joke.source}
+                    </td>
+                    <td className={`${cellStyles} pt-2 md:pt-3 md:text-right`}>
                       <button
-                        className="bg-sky-500 hover:bg-sky-400 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
+                        className="bg-sky-500 hover:bg-sky-400 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
                         onClick={() => startEdit(joke)}
                       >
                         Edit
