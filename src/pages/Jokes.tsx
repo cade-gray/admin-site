@@ -52,6 +52,7 @@ const Jokes: React.FC<LoginProps> = ({
   const [jokes, setJokes] = useState<Joke[]>([]);
   const [submissions, setSubmissions] = useState<JokeSubmission[]>([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [loadedSubmissionId, setLoadedSubmissionId] = useState<number | null>(
     null,
   );
@@ -148,6 +149,55 @@ const Jokes: React.FC<LoginProps> = ({
       alert("Error pulling joke submissions: " + error);
     } finally {
       setSubmissionsLoading(false);
+    }
+  };
+
+  const deleteSubmission = async (submission: JokeSubmission) => {
+    if (
+      !window.confirm(
+        `Delete submission #${submission.submissionId}? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    const tokenString = sessionStorage.getItem("cg-admin-token");
+    if (!tokenString) {
+      setLoggedIn(false);
+      return;
+    }
+    const { user, token } = JSON.parse(tokenString);
+    setDeletingId(submission.submissionId);
+    try {
+      const response = await fetch(
+        `https://jokedle-api.cadegray.dev/joke/submission/${submission.submissionId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-User": user,
+          },
+        },
+      );
+      if (response.status === 401) {
+        logoutPost();
+        sessionStorage.removeItem("cg-admin-token");
+        setLoggedIn(false);
+        return;
+      }
+      const data = await response.json();
+      if (response.ok && data.success !== false) {
+        setSubmissions((current) =>
+          current.filter(
+            (item) => item.submissionId !== submission.submissionId,
+          ),
+        );
+      } else {
+        alert("Error deleting submission: " + (data.error ?? response.status));
+      }
+    } catch (error) {
+      alert("Error deleting submission: " + error);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -296,13 +346,25 @@ const Jokes: React.FC<LoginProps> = ({
                         ? new Date(submission.createdAt).toLocaleDateString()
                         : ""}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        className="bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
-                        onClick={() => loadSubmission(submission)}
-                      >
-                        Load
-                      </button>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
+                          onClick={() => loadSubmission(submission)}
+                          disabled={deletingId === submission.submissionId}
+                        >
+                          Load
+                        </button>
+                        <button
+                          className="bg-rose-500 hover:bg-rose-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition w-20"
+                          onClick={() => deleteSubmission(submission)}
+                          disabled={deletingId === submission.submissionId}
+                        >
+                          {deletingId === submission.submissionId
+                            ? "Deleting…"
+                            : "Delete"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
