@@ -5,7 +5,7 @@
  * TODO: Add a history of jokes pulled from API during session.
  * TODO: Move joke pulling and submission to a component. Functions to be placed in lib folder.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginProps } from "../interfaces/LoginPropsInterface";
 import { logoutPost } from "../lib/logoutPost.ts";
@@ -26,13 +26,6 @@ interface JokeSubmission {
   source?: string;
   createdAt?: string;
 }
-
-const emptyEdit = {
-  setup: "",
-  punchline: "",
-  formattedPunchline: "",
-  source: "",
-};
 
 const inputStyles =
   "bg-slate-900/70 border border-slate-600 rounded-lg p-2 text-neutral-200 placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition";
@@ -69,20 +62,22 @@ const Jokes: React.FC<LoginProps> = ({
   const [loadedSubmissionId, setLoadedSubmissionId] = useState<number | null>(
     null,
   );
+  // editingId null means the form is composing a new joke, otherwise it is
+  // editing that existing joke in place
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editJoke, setEditJoke] = useState(emptyEdit);
   const [saving, setSaving] = useState(false);
-
-  // The grid previews the joke being edited, otherwise the new-joke form
-  const previewText =
-    editingId !== null ? editJoke.formattedPunchline : formattedPunchline;
+  const formRef = useRef<HTMLDivElement>(null);
 
   const handleSetupChange = (event) => {
     setSetup(event.target.value);
   };
   const handlePunchlineChange = (event) => {
     setPunchline(event.target.value);
-    setFormattedPunchline(event.target.value);
+    // Mirroring is a convenience for new jokes - never clobber the hand
+    // formatted punchline of a joke that is already in the database
+    if (editingId === null) {
+      setFormattedPunchline(event.target.value);
+    }
   };
   const handleFmtdPunchlineChange = (event) => {
     setFormattedPunchline(event.target.value);
@@ -214,6 +209,39 @@ const Jokes: React.FC<LoginProps> = ({
     }
   };
 
+  const submitNewJoke = async () => {
+    // TODO: Seperate this into a function and place in lib folder
+    const joke = {
+      setup: setup,
+      punchline: punchline,
+      formattedPunchline: formattedPunchline,
+      source: source || null,
+    };
+    const tokenString = sessionStorage.getItem("cg-admin-token");
+    if (!tokenString) {
+      setLoggedIn(false);
+      return;
+    }
+    const { user, token } = JSON.parse(tokenString);
+    const response = await fetch("https://jokedle-api.cadegray.dev/joke", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-User": user,
+      },
+      body: JSON.stringify({ joke }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      clearForm();
+      fetchJokes();
+    } else {
+      alert("Error submitting joke: " + data.error);
+    }
+  };
+
   const clearForm = () => {
     setSetup("");
     setPunchline("");
@@ -225,7 +253,7 @@ const Jokes: React.FC<LoginProps> = ({
   // Loads a public submission into the new-joke form so it can be tweaked
   // before being added to the main joke database
   const loadSubmission = (submission: JokeSubmission) => {
-    cancelEdit();
+    setEditingId(null);
     setSetup(submission.setup ?? "");
     setPunchline(submission.punchline ?? "");
     setFormattedPunchline(submission.punchline ?? "");
@@ -233,19 +261,21 @@ const Jokes: React.FC<LoginProps> = ({
     setLoadedSubmissionId(submission.submissionId);
   };
 
+  // Pulls an existing joke up into the main form so it can be edited with the
+  // full width fields and the grid preview
   const startEdit = (joke: Joke) => {
     setEditingId(joke.jokeId);
-    setEditJoke({
-      setup: joke.setup ?? "",
-      punchline: joke.punchline ?? "",
-      formattedPunchline: joke.formattedPunchline ?? joke.punchline ?? "",
-      source: joke.source ?? "",
-    });
+    setLoadedSubmissionId(null);
+    setSetup(joke.setup ?? "");
+    setPunchline(joke.punchline ?? "");
+    setFormattedPunchline(joke.formattedPunchline ?? joke.punchline ?? "");
+    setSource(joke.source ?? "");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditJoke(emptyEdit);
+    clearForm();
   };
 
   const saveEdit = async () => {
@@ -267,7 +297,14 @@ const Jokes: React.FC<LoginProps> = ({
             Authorization: `Bearer ${token}`,
             "X-User": user,
           },
-          body: JSON.stringify({ joke: editJoke }),
+          body: JSON.stringify({
+            joke: {
+              setup,
+              punchline,
+              formattedPunchline,
+              source: source || null,
+            },
+          }),
         },
       );
       if (response.status === 401) {
@@ -400,7 +437,10 @@ const Jokes: React.FC<LoginProps> = ({
         )}
       </div>
       <div
-        className={`${cardStyles} flex flex-col space-y-5 items-center p-4 sm:p-6`}
+        ref={formRef}
+        className={`${cardStyles} flex flex-col space-y-5 items-center p-4 sm:p-6 ${
+          editingId !== null ? "ring-1 ring-amber-500/60" : ""
+        }`}
       >
         <button
           className="bg-sky-500 hover:bg-sky-400 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-64"
@@ -497,7 +537,7 @@ const Jokes: React.FC<LoginProps> = ({
             )}
           </p>
           <div className="grid grid-cols-12 bg-slate-900/70 border border-slate-700 rounded-lg p-2">
-            {Array.from(previewText, (char, index) => (
+            {Array.from(formattedPunchline, (char, index) => (
               <div
                 key={index}
                 className={`m-px sm:m-0.5 aspect-square flex items-center justify-center text-[0.6rem] sm:text-base md:text-xl font-semibold rounded ${
@@ -512,53 +552,42 @@ const Jokes: React.FC<LoginProps> = ({
           </div>
         </div>
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center w-full">
-          <button
-            className="bg-emerald-500 hover:bg-emerald-400 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-64"
-            onClick={async () => {
-              // TODO: Seperate this into a function and place in lib folder
-              const joke = {
-                setup: setup,
-                punchline: punchline,
-                formattedPunchline: formattedPunchline,
-                source: source || null,
-              };
-              const tokenString = sessionStorage.getItem("cg-admin-token");
-              if (!tokenString) {
-                setLoggedIn(false);
-                return;
-              }
-              const { user, token } = JSON.parse(tokenString);
-              const response = await fetch(
-                "https://jokedle-api.cadegray.dev/joke",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                    "X-User": user,
-                  },
-                  body: JSON.stringify({ joke }),
-                },
-              );
-
-              const data = await response.json();
-              if (data.success) {
-                clearForm();
-                fetchJokes();
-              } else {
-                alert("Error submitting joke: " + data.error);
-              }
-            }}
-          >
-            Submit Joke to Database
-          </button>
-          <button
-            className="bg-slate-600 hover:bg-slate-500 disabled:opacity-40 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-40"
-            onClick={clearForm}
-            disabled={!setup && !punchline && !formattedPunchline && !source}
-          >
-            Clear Fields
-          </button>
+          {editingId !== null ? (
+            <>
+              <button
+                className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-64"
+                onClick={saveEdit}
+                disabled={saving}
+              >
+                {saving ? "Saving…" : `Save Changes to #${editingId}`}
+              </button>
+              <button
+                className="bg-slate-600 hover:bg-slate-500 disabled:opacity-40 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-40"
+                onClick={cancelEdit}
+                disabled={saving}
+              >
+                Cancel Edit
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="bg-emerald-500 hover:bg-emerald-400 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-64"
+                onClick={submitNewJoke}
+              >
+                Submit Joke to Database
+              </button>
+              <button
+                className="bg-slate-600 hover:bg-slate-500 disabled:opacity-40 text-white font-medium p-2 rounded-lg shadow-md transition w-full sm:w-40"
+                onClick={clearForm}
+                disabled={
+                  !setup && !punchline && !formattedPunchline && !source
+                }
+              >
+                Clear Fields
+              </button>
+            </>
+          )}
         </div>
       </div>
       <JokeSequence
@@ -584,126 +613,47 @@ const Jokes: React.FC<LoginProps> = ({
               </tr>
             </thead>
             <tbody className={tbodyStyles}>
-              {jokes.map((joke) =>
-                editingId === joke.jokeId ? (
-                  <tr
-                    key={joke.jokeId}
-                    className={`${rowStyles} bg-slate-700/40`}
+              {jokes.map((joke) => (
+                <tr
+                  key={joke.jokeId}
+                  className={`${rowStyles} ${
+                    editingId === joke.jokeId
+                      ? "bg-slate-700/40"
+                      : "hover:bg-slate-700/40"
+                  }`}
+                >
+                  <td
+                    data-label="ID"
+                    className={`${cellStyles} font-mono text-slate-400`}
                   >
-                    <td
-                      data-label="ID"
-                      className={`${cellStyles} font-mono text-slate-400`}
-                    >
-                      {joke.jokeId}
-                    </td>
-                    <td data-label="Setup" className={cellStyles}>
-                      <textarea
-                        className={`${inputStyles} w-full text-sm`}
-                        rows={3}
-                        maxLength={255}
-                        value={editJoke.setup}
-                        onChange={(e) =>
-                          setEditJoke({ ...editJoke, setup: e.target.value })
-                        }
-                      ></textarea>
-                    </td>
-                    <td data-label="Punchline" className={cellStyles}>
-                      <textarea
-                        className={`${inputStyles} w-full text-sm`}
-                        rows={3}
-                        maxLength={50}
-                        value={editJoke.punchline}
-                        onChange={(e) =>
-                          setEditJoke({
-                            ...editJoke,
-                            punchline: e.target.value,
-                          })
-                        }
-                      ></textarea>
-                    </td>
-                    <td
-                      data-label="Formatted Punchline"
-                      className={cellStyles}
-                    >
-                      <textarea
-                        className={`${inputStyles} w-full text-sm`}
-                        rows={3}
-                        maxLength={75}
-                        value={editJoke.formattedPunchline}
-                        onChange={(e) =>
-                          setEditJoke({
-                            ...editJoke,
-                            formattedPunchline: e.target.value,
-                          })
-                        }
-                      ></textarea>
-                    </td>
-                    <td data-label="Source" className={cellStyles}>
-                      <input
-                        type="text"
-                        className={`${inputStyles} w-full text-sm`}
-                        value={editJoke.source}
-                        onChange={(e) =>
-                          setEditJoke({ ...editJoke, source: e.target.value })
-                        }
-                      />
-                    </td>
-                    <td className={`${cellStyles} pt-2 md:pt-3`}>
-                      <div className="flex gap-2 md:flex-col md:items-end">
-                        <button
-                          className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
-                          onClick={saveEdit}
-                          disabled={saving}
-                        >
-                          {saving ? "Saving…" : "Save"}
-                        </button>
-                        <button
-                          className="bg-slate-600 hover:bg-slate-500 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
-                          onClick={cancelEdit}
-                          disabled={saving}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  <tr
-                    key={joke.jokeId}
-                    className={`${rowStyles} hover:bg-slate-700/40`}
+                    {joke.jokeId}
+                  </td>
+                  <td data-label="Setup" className={cellStyles}>
+                    {joke.setup}
+                  </td>
+                  <td data-label="Punchline" className={cellStyles}>
+                    {joke.punchline}
+                  </td>
+                  <td data-label="Formatted Punchline" className={cellStyles}>
+                    {joke.formattedPunchline}
+                  </td>
+                  <td
+                    data-label="Source"
+                    className={`${cellStyles} text-slate-400`}
                   >
-                    <td
-                      data-label="ID"
-                      className={`${cellStyles} font-mono text-slate-400`}
+                    {joke.source}
+                  </td>
+                  <td className={`${cellStyles} pt-2 md:pt-3 md:text-right`}>
+                    <button
+                      className="bg-sky-500 hover:bg-sky-400 disabled:bg-amber-500 disabled:opacity-100 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
+                      onClick={() => startEdit(joke)}
+                      disabled={editingId === joke.jokeId}
                     >
-                      {joke.jokeId}
-                    </td>
-                    <td data-label="Setup" className={cellStyles}>
-                      {joke.setup}
-                    </td>
-                    <td data-label="Punchline" className={cellStyles}>
-                      {joke.punchline}
-                    </td>
-                    <td data-label="Formatted Punchline" className={cellStyles}>
-                      {joke.formattedPunchline}
-                    </td>
-                    <td
-                      data-label="Source"
-                      className={`${cellStyles} text-slate-400`}
-                    >
-                      {joke.source}
-                    </td>
-                    <td className={`${cellStyles} pt-2 md:pt-3 md:text-right`}>
-                      <button
-                        className="bg-sky-500 hover:bg-sky-400 text-white text-xs font-medium px-3 py-2 md:py-1.5 rounded-lg transition w-full md:w-20"
-                        onClick={() => startEdit(joke)}
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ),
-              )}
+                      {editingId === joke.jokeId ? "Editing" : "Edit"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
